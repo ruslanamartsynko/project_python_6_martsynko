@@ -1,0 +1,1 @@
+# project_python_6_martsynko_and_termys
