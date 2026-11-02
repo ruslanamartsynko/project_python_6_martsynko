@@ -14,6 +14,11 @@ A browser-based application for exploring experimental and calculated datasets, 
 - Calculate count, mean, median, sample variance, standard deviation, minimum, and maximum.
 - Visualize datasets with **line plots, histograms, and a scatter plot**.
 - Export processed data as **CSV** and generate a **PDF report** with summary statistics and charts.
+ 
+## Application Preview
+
+![Application Screenshot](app-preview.png)
+
 
 ## Tech stack
 
