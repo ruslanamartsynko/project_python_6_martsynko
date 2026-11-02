@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="uk">
+<head>
+    <meta charset="utf-8">
+    <title>Генератор звітів з аналізу даних</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header>
+    <h1>Генератор звітів з аналізу даних</h1>
+    <p>Експериментальні та розрахункові дані, статистика, графіки, PDF-звіт і CSV.</p>
+</header>
+
+<main>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <section class="messages">
+                {% for category, message in messages %}
+                    <div class="message {{ category }}">{{ message }}</div>
+                {% endfor %}
+            </section>
+        {% endif %}
+    {% endwith %}
+
+    <section class="grid">
+        <article class="card">
+            <h2>1. Завантаження CSV/Excel</h2>
+            <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
+                <input type="file" name="data_file" accept=".csv,.xlsx,.xls" required>
+                <button type="submit">Завантажити</button>
+            </form>
+        </article>
+
+        <article class="card">
+            <h2>2. Ввести два масиви</h2>
+            <form action="{{ url_for('set_data') }}" method="post">
+                <label>Experimental</label>
+                <textarea name="experimental_values" placeholder="1.2, 2.5, 3.7"></textarea>
+                <label>Calculated</label>
+                <textarea name="calculated_values" placeholder="1.0, 2.7, 3.4"></textarea>
+                <button type="submit">Записати масиви</button>
+            </form>
+        </article>
+
+        <article class="card">
+            <h2>3. Додати один елемент</h2>
+            <form action="{{ url_for('add_one') }}" method="post">
+                <input name="experimental_one" placeholder="Experimental" required>
+                <input name="calculated_one" placeholder="Calculated" required>
+                <button type="submit">Додати</button>
+            </form>
+        </article>
+
+        <article class="card">
+            <h2>4. Попарно додати дані</h2>
+            <form action="{{ url_for('add_many') }}" method="post">
+                <label>Experimental list</label>
+                <textarea name="experimental_many" placeholder="4.1, 4.8, 5.2"></textarea>
+                <label>Calculated list</label>
+                <textarea name="calculated_many" placeholder="4.0, 4.5, 5.5"></textarea>
+                <button type="submit">Додати списки</button>
+            </form>
+        </article>
+
+        <article class="card wide">
+            <h2>5. Додати випадкові дані з нормального розподілу</h2>
+            <form action="{{ url_for('generate_normal') }}" method="post" class="inline-form">
+                <input name="normal_n" type="number" min="1" value="20" placeholder="n" required>
+                <input name="exp_mean" value="10" placeholder="Exp mean" required>
+                <input name="exp_std" value="2" placeholder="Exp std" required>
+                <input name="calc_mean" value="10" placeholder="Calc mean" required>
+                <input name="calc_std" value="2" placeholder="Calc std" required>
+                <button type="submit">Згенерувати</button>
+            </form>
+        </article>
+    </section>
+
+    <section class="card">
+        <h2>Основні статистичні показники</h2>
+        <table>
+            <thead>
+            <tr>
+                <th>Масив</th><th>n</th><th>Середнє</th><th>Медіана</th><th>Дисперсія</th><th>Ст. відхилення</th><th>Min</th><th>Max</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for name, s in stats.items() %}
+                <tr>
+                    <td>{{ name }}</td>
+                    <td>{{ s.count }}</td>
+                    <td>{{ "%.4f"|format(s.mean) if s.mean is not none else "-" }}</td>
+                    <td>{{ "%.4f"|format(s.median) if s.median is not none else "-" }}</td>
+                    <td>{{ "%.4f"|format(s.variance) if s.variance is not none else "-" }}</td>
+                    <td>{{ "%.4f"|format(s.std) if s.std is not none else "-" }}</td>
+                    <td>{{ "%.4f"|format(s.min) if s.min is not none else "-" }}</td>
+                    <td>{{ "%.4f"|format(s.max) if s.max is not none else "-" }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+    <section class="card">
+        <h2>Попередній перегляд даних</h2>
+        <table>
+            <thead><tr><th>Experimental</th><th>Calculated</th></tr></thead>
+            <tbody>
+            {% for row in preview %}
+                <tr><td>{{ row.experimental }}</td><td>{{ row.calculated }}</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+    <section class="card">
+        <h2>Графіки та діаграми</h2>
+        {% if charts %}
+            <div class="charts">
+                {% for name, path in charts.items() %}
+                    <img src="{{ path }}" alt="{{ name }}">
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>Додайте дані, щоб побачити графіки.</p>
+        {% endif %}
+    </section>
+
+    <section class="actions">
+        <a class="button" href="{{ url_for('download_csv') }}">Завантажити CSV</a>
+        <a class="button" href="{{ url_for('download_report') }}">Згенерувати PDF-звіт</a>
+        <form action="{{ url_for('clear_data') }}" method="post">
+            <button class="danger" type="submit">Очистити дані</button>
+        </form>
+    </section>
+</main>
+</body>
+</html>
